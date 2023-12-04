@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TEXT CLASSIFICATION WEB APP</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background-image: url('{{ url_for('static', filename='images/img2.jpg') }}');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            margin: 0;
+        }
+        .content {
+            text-align: center;
+        }
+        h1 {
+            font-size: 3em;
+        }
+        label {
+            font-size: 2em;
+        }
+        input[type="submit"] {
+            font-size: 2em;
+        }
+        textarea {
+            font-size: 2em;
+        }
+        #classification_result {
+            font-size: 2em;
+            color: white;
+        }
+        p {
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Text Classification Web App</h1>
+
+        <form method="POST" onsubmit="classifyText(event)">
+            <label for="user_text">Enter Text:</label><br>
+            <textarea name="user_text" id="user_text" required></textarea><br><br>
+
+            <input type="submit" value="Classify Text">
+        </form>
+        <form method="POST" onsubmit="populateRandomSample(event)">
+            <input type="submit" name="random_sample" value="Choose Random Sample">
+        </form>
+
+        <div id="classification_result"></div>
+
+        {% if prediction %}
+            <h2>Prediction:</h2>
+            <h2 style="color: white;">Prediction:</h2>
+            <p>{{ prediction }}</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function classifyText(event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get the text area element
+            var textArea = document.getElementById("user_text");
+            var user_text = textArea.value;  // Get the text from the input field
+
+            // Make an AJAX request to your server to classify the text
+            fetch('/classify_text', {
+                method: 'POST',
+                body: JSON.stringify({ text: user_text }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(result => {
+                // Log the received result for debugging
+                console.log('Received result:', result);
+
+                // Display the classification result in the classification_result element
+                var resultElement = document.getElementById("classification_result");
+                resultElement.innerText = result;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle error, display an error message, etc.
+            });
+        }
+
+        // Handle the "Choose Random Sample" button click
+        document.querySelector('input[name="random_sample"]').addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Make an AJAX request to your server to get a random sample
+            fetch('/get_random_sample')
+                .then(response => response.text())
+                .then(data => {
+                    // Set the value of the user_text textarea to the random sample received from the server
+                    document.getElementById("user_text").value = data;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
